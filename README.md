@@ -19,6 +19,10 @@ pip install seaborn==0.13.0
 
 To predict polymer viscosity using FNN and PINN models, save the dataframe containing the polymer's SMILES information and temperature into a .csv file, and then use a command like:
 
-`python FNN.py xxx.csv`
+```
+python FNN.py xxx.csv
+```
 
-`python PINN.py xxx.csv`
+```
+python PINN.py xxx.csv
+```
