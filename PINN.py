@@ -1,5 +1,6 @@
 import argparse
 import pandas as pd
+import tensorflow as tf
 
 # Create the parser
 parser = argparse.ArgumentParser(description='Process some CSV files.')
@@ -40,6 +41,11 @@ class MuLoss(tf.keras.losses.Loss):
         return total_loss
 
 from tensorflow.keras.optimizers import Adam
+from keras.layers import Input, Dense
+from keras.models import Model
+from keras.utils import plot_model
+from keras.layers import Concatenate
+from numpy.random import seed
 
 n_1 = 512
 n_2 = 512
@@ -115,11 +121,26 @@ n_samples, n_features = X_MD.shape
 
 slice_index = n_features - 1
 
-X_MD_1 = X_MD.iloc[:, :slice_index] 
-X_MD_2 = X_MD.iloc[:, slice_index:] 
+X_MD_1 = X_MD[:, :slice_index] 
+X_MD_2 = X_MD[:, slice_index:] 
 
 score = model.predict(([X_MD_1, X_MD_2]))
 
-df['log(Visc)'] = score
+df_pred = pd.DataFrame(score, columns=['pmu', 'pnA', 'pnB', 'pnC', 'pnD','T'])
+A = df_pred['pnA'] * (-1.9879 + 20.7554) - 20.7554
+B = df_pred['pnB'] * (4240.2 - 415.84) + 415.84
+C = df_pred['pnC'] * (0.037091 - 0.000474) + 0.000474
+D = df_pred['pnD'] * (-4.01E-8 + 3.03E-5) - 3.03E-5
+T = df_pred['T']
+y_pred_test_new = A + B / T + C * T + D * T**2
 
-df.to_csv('Prediction_results.csv',index=False)
+df_result = pd.DataFrame({
+    "prediction_mu": df_pred["pmu"],
+    "A": A,
+    "B": B,
+    "C": C,
+    "D": D,
+    "calculated_mu": y_pred_test_new
+})
+
+df_result.to_csv('Prediction_results.csv',index=False)
